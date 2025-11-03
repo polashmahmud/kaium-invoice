@@ -56,6 +56,10 @@
     <!-- Add Row Button -->
     <div class="add-row-section no-print">
       <q-btn outline color="primary" icon="add" label="Add New" class="add-row-button" @click="$emit('add-row')" />
+      <q-btn round color="primary" icon="print" class="action-icon-button" aria-label="Print invoice"
+        @click="$emit('print-invoice')" />
+      <q-btn round color="secondary" icon="image" class="action-icon-button" aria-label="Export invoice snapshot"
+        @click="$emit('download-image')" />
     </div>
   </div>
 </template>
@@ -70,7 +74,7 @@ const props = defineProps({
   }
 })
 
-defineEmits(['add-row', 'remove-row'])
+defineEmits(['add-row', 'remove-row', 'print-invoice', 'download-image'])
 
 function normalizeQty(row) {
   if (row.qty < 0) row.qty = 0
@@ -170,10 +174,17 @@ function formatMoney(n) {
 
 .add-row-section {
   margin: 0.75rem 0 0;
+  display: flex;
+  align-items: center;
+  gap: 12px;
 }
 
 .add-row-button {
   min-width: 140px;
+}
+
+.action-icon-button {
+  flex-shrink: 0;
 }
 
 .total-label-cell {

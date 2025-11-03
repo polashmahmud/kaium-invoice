@@ -5,14 +5,11 @@
         <q-card-section id="printArea" class="print-area">
           <InvoiceHeader v-model:shop-name="shopName" v-model:date="date" />
 
-          <InvoiceTable :rows="rows" @add-row="addRow" @remove-row="removeRow" />
+          <InvoiceTable :rows="rows" @add-row="addRow" @remove-row="removeRow" @print-invoice="printInvoice"
+            @download-image="downloadImage" />
         </q-card-section>
       </q-card>
     </div>
-    <q-btn class="print-fab no-print" fab color="primary" icon="print" aria-label="Print invoice"
-      @click="printInvoice" />
-    <q-btn class="image-fab no-print" fab color="secondary" icon="image" aria-label="Export invoice snapshot"
-      @click="downloadImage" />
   </q-page>
 </template>
 
@@ -132,20 +129,6 @@ async function downloadImage() {
   display: none !important;
 }
 
-.print-fab {
-  position: fixed;
-  bottom: 24px;
-  right: 24px;
-  box-shadow: 0 12px 24px rgba(0, 0, 0, 0.25);
-}
-
-.image-fab {
-  position: fixed;
-  bottom: 24px;
-  right: 96px;
-  box-shadow: 0 12px 24px rgba(0, 0, 0, 0.2);
-}
-
 @media (max-width: 768px) {
   .page-wrapper {
     padding: 1rem 0.5rem;
@@ -153,16 +136,6 @@ async function downloadImage() {
 
   .print-area {
     padding: 1rem !important;
-  }
-
-  .print-fab {
-    bottom: 16px;
-    right: 16px;
-  }
-
-  .image-fab {
-    bottom: 16px;
-    right: 84px;
   }
 }
 
