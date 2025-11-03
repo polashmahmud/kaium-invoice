@@ -60,6 +60,8 @@
         @click="$emit('print-invoice')" />
       <q-btn round color="secondary" icon="image" class="action-icon-button" aria-label="Export invoice snapshot"
         @click="$emit('download-image')" />
+      <q-btn round color="negative" icon="refresh" class="action-icon-button" aria-label="Reset invoice"
+        @click="$emit('reset-invoice')" />
     </div>
   </div>
 </template>
@@ -74,7 +76,7 @@ const props = defineProps({
   }
 })
 
-defineEmits(['add-row', 'remove-row', 'print-invoice', 'download-image'])
+defineEmits(['add-row', 'remove-row', 'print-invoice', 'download-image', 'reset-invoice'])
 
 function normalizeQty(row) {
   if (row.qty < 0) row.qty = 0

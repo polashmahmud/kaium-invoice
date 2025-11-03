@@ -6,7 +6,7 @@
           <InvoiceHeader v-model:shop-name="shopName" v-model:date="date" />
 
           <InvoiceTable :rows="rows" @add-row="addRow" @remove-row="removeRow" @print-invoice="printInvoice"
-            @download-image="downloadImage" />
+            @download-image="downloadImage" @reset-invoice="resetInvoice" />
         </q-card-section>
       </q-card>
     </div>
@@ -33,6 +33,13 @@ function addRow() {
 function removeRow(index) {
   rows.value.splice(index, 1)
   if (rows.value.length === 0) addRow()
+}
+
+function resetInvoice() {
+  shopName.value = ''
+  date.value = new Date().toISOString().slice(0, 10)
+  counter = 1
+  rows.value = [{ id: 1, description: '', qty: 1, price: 0 }]
 }
 
 function printInvoice() {
