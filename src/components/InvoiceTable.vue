@@ -16,8 +16,14 @@
           <tr v-for="(row, i) in rows" :key="row.id">
             <td class="text-center">{{ i + 1 }}</td>
             <td class="description-cell">
-              <q-input v-model="row.description" type="textarea" autogrow dense borderless
-                placeholder="Item description" input-class="description-input" />
+              <div class="description-editor">
+                <q-input v-model="row.description" type="textarea" autogrow dense borderless
+                  placeholder="Item description" input-class="description-input" />
+              </div>
+              <div class="description-display">
+                <span v-if="row.description">{{ row.description }}</span>
+                <span v-else>&nbsp;</span>
+              </div>
             </td>
             <td class="qty-cell">
               <q-input v-model.number="row.qty" type="number" min="0" step="1" dense borderless class="text-center"
@@ -110,6 +116,7 @@ function formatMoney(n) {
 .inv-table td {
   border: 1px solid #000;
   padding: 6px 8px;
+  vertical-align: top;
 }
 
 .inv-table thead th {
@@ -121,6 +128,8 @@ function formatMoney(n) {
 
 .description-cell {
   min-width: 240px;
+  max-width: 400px;
+  position: relative;
 }
 
 .description-cell :deep(.q-field__native) {
@@ -136,6 +145,19 @@ function formatMoney(n) {
 
 .description-cell :deep(textarea) {
   resize: none;
+}
+
+.description-editor {
+  display: block;
+}
+
+.description-display {
+  display: none;
+  white-space: pre-wrap;
+  word-break: break-word;
+  overflow-wrap: break-word;
+  word-wrap: break-word;
+  max-width: 100%;
 }
 
 .qty-cell :deep(.q-field__native) {
@@ -175,6 +197,14 @@ function formatMoney(n) {
     display: none !important;
   }
 
+  .description-editor {
+    display: none !important;
+  }
+
+  .description-display {
+    display: block;
+  }
+
   .table-wrapper {
     margin-bottom: 0;
   }
@@ -204,5 +234,28 @@ function formatMoney(n) {
   .total-amount-cell {
     padding: 6px !important;
   }
+}
+
+:deep(#printArea.exporting .description-editor) {
+  display: none !important;
+}
+
+:deep(#printArea.exporting .description-display) {
+  display: block !important;
+  white-space: pre-wrap !important;
+  word-break: break-word !important;
+  overflow-wrap: break-word !important;
+}
+
+:deep(#printArea.exporting .inv-table) {
+  width: auto;
+  min-width: 100%;
+  table-layout: auto;
+}
+
+:deep(#printArea.exporting .description-cell) {
+  max-width: 900px;
+  min-width: 600px;
+  width: 900px;
 }
 </style>
