@@ -7,32 +7,33 @@
             </div>
 
             <q-list v-if="invoices.length > 0" bordered separator class="invoice-list">
-                <q-item v-for="invoice in invoices" :key="invoice.id">
-                    <q-item-section @click="viewInvoice(invoice.id)" clickable>
-                        <q-item-label>
-                            <strong>{{ invoice.shopName || 'Untitled Invoice' }}</strong>
-                        </q-item-label>
-                        <q-item-label caption lines="2">
-                            {{ getInvoiceSummary(invoice) }}
-                        </q-item-label>
-                    </q-item-section>
+                <q-slide-item v-for="invoice in invoices" :key="invoice.id" @left="() => onSwipeLeft(invoice)"
+                    @right="() => onSwipeRight(invoice)" left-color="primary" right-color="negative">
 
-                    <q-item-section side top>
-                        <q-item-label caption>{{ formatDate(invoice.createdAt) }}</q-item-label>
-                        <q-badge color="primary" :label="`${invoice.rows.length} items`" />
+                    <template v-slot:left>
+                        <q-icon name="edit" />
+                    </template>
 
-                        <div class="action-buttons q-mt-sm">
-                            <q-btn flat dense round icon="edit" color="primary" size="sm"
-                                @click.stop="editInvoice(invoice.id)">
-                                <q-tooltip>Edit</q-tooltip>
-                            </q-btn>
-                            <q-btn flat dense round icon="delete" color="negative" size="sm"
-                                @click.stop="confirmDelete(invoice)">
-                                <q-tooltip>Delete</q-tooltip>
-                            </q-btn>
-                        </div>
-                    </q-item-section>
-                </q-item>
+                    <template v-slot:right>
+                        <q-icon name="delete" />
+                    </template>
+
+                    <q-item @click="viewInvoice(invoice.id)" clickable>
+                        <q-item-section>
+                            <q-item-label>
+                                <strong>{{ invoice.shopName || 'Untitled Invoice' }}</strong>
+                            </q-item-label>
+                            <q-item-label caption lines="2">
+                                {{ getInvoiceSummary(invoice) }}
+                            </q-item-label>
+                        </q-item-section>
+
+                        <q-item-section side top>
+                            <q-item-label caption>{{ formatDate(invoice.createdAt) }}</q-item-label>
+                            <q-badge color="primary" :label="`${invoice.rows.length} items`" />
+                        </q-item-section>
+                    </q-item>
+                </q-slide-item>
             </q-list>
 
             <div v-else class="empty-state">
@@ -105,15 +106,17 @@ function viewInvoice(invoiceId) {
     router.push(`/preview/${invoiceId}`)
 }
 
-function editInvoice(invoiceId) {
+// Swipe left - Edit
+function onSwipeLeft(invoice) {
     // Set this invoice as current invoice
-    setCurrentInvoiceId(invoiceId)
+    setCurrentInvoiceId(invoice.id)
 
     // Navigate to home page
     router.push('/')
 }
 
-async function confirmDelete(invoice) {
+// Swipe right - Delete
+async function onSwipeRight(invoice) {
     const confirmed = confirm(`Are you sure you want to delete "${invoice.shopName || 'Untitled Invoice'}"?`)
 
     if (confirmed) {
@@ -181,12 +184,6 @@ function goToHome() {
 
 .invoice-list .q-item:hover {
     background-color: #f5f5f5;
-}
-
-.action-buttons {
-    display: flex;
-    gap: 0.25rem;
-    justify-content: flex-end;
 }
 
 .empty-state {
