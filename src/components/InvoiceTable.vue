@@ -55,11 +55,11 @@
 
     <!-- Add Row Button -->
     <div class="no-print">
-      <q-btn-group spread>
-        <q-btn label="Add New" icon="add" @click="$emit('add-row')" />
-        <q-btn label="Print" icon="print" @click="$emit('print-invoice')" />
-        <q-btn label="Image" icon="image" @click="$emit('download-image')" />
-        <q-btn label="Refresh" icon="refresh" @click="$emit('reset-invoice')" />
+      <q-btn-group spread rounded>
+        <q-btn icon="add" @click="$emit('add-row')" />
+        <q-btn icon="print" @click="$emit('print-invoice')" />
+        <q-btn icon="image" @click="$emit('download-image')" />
+        <q-btn icon="refresh" @click="$emit('reset-invoice')" />
       </q-btn-group>
     </div>
   </div>
