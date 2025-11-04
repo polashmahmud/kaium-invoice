@@ -7,9 +7,8 @@
             </div>
 
             <q-list v-if="invoices.length > 0" bordered separator class="invoice-list">
-                <q-item v-for="invoice in invoices" :key="invoice.id" clickable v-ripple
-                    @click="viewInvoice(invoice.id)">
-                    <q-item-section>
+                <q-item v-for="invoice in invoices" :key="invoice.id">
+                    <q-item-section @click="viewInvoice(invoice.id)" clickable>
                         <q-item-label>
                             <strong>{{ invoice.shopName || 'Untitled Invoice' }}</strong>
                         </q-item-label>
@@ -21,6 +20,17 @@
                     <q-item-section side top>
                         <q-item-label caption>{{ formatDate(invoice.createdAt) }}</q-item-label>
                         <q-badge color="primary" :label="`${invoice.rows.length} items`" />
+
+                        <div class="action-buttons q-mt-sm">
+                            <q-btn flat dense round icon="edit" color="primary" size="sm"
+                                @click.stop="editInvoice(invoice.id)">
+                                <q-tooltip>Edit</q-tooltip>
+                            </q-btn>
+                            <q-btn flat dense round icon="delete" color="negative" size="sm"
+                                @click.stop="confirmDelete(invoice)">
+                                <q-tooltip>Delete</q-tooltip>
+                            </q-btn>
+                        </div>
                     </q-item-section>
                 </q-item>
             </q-list>
@@ -37,9 +47,11 @@
 <script setup>
 import { ref, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
-import { getAllInvoices } from 'src/utils/db.js'
+import { useQuasar } from 'quasar'
+import { getAllInvoices, deleteInvoice, setCurrentInvoiceId } from 'src/utils/db.js'
 
 const router = useRouter()
+const $q = useQuasar()
 const invoices = ref([])
 
 onMounted(async () => {
@@ -95,6 +107,45 @@ function viewInvoice(invoiceId) {
     router.push(`/preview/${invoiceId}`)
 }
 
+function editInvoice(invoiceId) {
+    // Set this invoice as current invoice
+    setCurrentInvoiceId(invoiceId)
+
+    // Navigate to home page
+    router.push('/')
+}
+
+async function confirmDelete(invoice) {
+    const confirmed = confirm(`Are you sure you want to delete "${invoice.shopName || 'Untitled Invoice'}"?`)
+
+    if (confirmed) {
+        await handleDelete(invoice.id)
+    }
+}
+
+async function handleDelete(invoiceId) {
+    try {
+        await deleteInvoice(invoiceId)
+
+        // Show success notification
+        $q.notify({
+            type: 'positive',
+            message: 'Invoice deleted successfully',
+            position: 'top'
+        })
+
+        // Reload the list
+        await loadInvoices()
+    } catch (error) {
+        console.error('Error deleting invoice:', error)
+        $q.notify({
+            type: 'negative',
+            message: 'Failed to delete invoice',
+            position: 'top'
+        })
+    }
+}
+
 function goToHome() {
     router.push('/')
 }
@@ -140,6 +191,12 @@ function goToHome() {
 
 .invoice-list .q-item:hover {
     background-color: #f5f5f5;
+}
+
+.action-buttons {
+    display: flex;
+    gap: 0.25rem;
+    justify-content: flex-end;
 }
 
 .empty-state {
