@@ -14,20 +14,114 @@
 </template>
 
 <script setup>
-import { ref } from 'vue'
+import { ref, onMounted, watch } from 'vue'
 import { useRouter } from 'vue-router'
 import InvoiceHeader from 'components/InvoiceHeader.vue'
 import InvoiceTable from 'components/InvoiceTable.vue'
+import {
+  initDB,
+  createInvoice,
+  getInvoice,
+  updateInvoice,
+  getCurrentInvoiceId,
+  setCurrentInvoiceId
+} from 'src/utils/db.js'
 
 const router = useRouter()
 
 const shopName = ref('')
 const date = ref(new Date().toISOString().slice(0, 10))
+const currentInvoiceId = ref(null)
+const isLoading = ref(true)
 
-let counter = 3
+let counter = 1
 const rows = ref([
   { id: 1, description: '', qty: 0, price: 0 },
 ])
+
+// Initialize and load invoice on mount
+onMounted(async () => {
+  try {
+    await initDB()
+
+    // Check if there's a current invoice ID
+    const savedId = getCurrentInvoiceId()
+
+    if (savedId) {
+      // Load existing invoice
+      const invoice = await getInvoice(savedId)
+      if (invoice) {
+        loadInvoiceData(invoice)
+        currentInvoiceId.value = savedId
+      } else {
+        // Invoice not found, create new one
+        await createNewInvoice()
+      }
+    } else {
+      // No current invoice, create new one
+      await createNewInvoice()
+    }
+  } catch (error) {
+    console.error('Error initializing invoice:', error)
+    // If error, still allow user to work
+  } finally {
+    isLoading.value = false
+  }
+})
+
+// Watch for changes and auto-save
+watch([shopName, date, rows], async () => {
+  if (!isLoading.value && currentInvoiceId.value) {
+    await saveCurrentInvoice()
+  }
+}, { deep: true })
+
+// Load invoice data
+function loadInvoiceData(invoice) {
+  shopName.value = invoice.shopName || ''
+  date.value = invoice.date || new Date().toISOString().slice(0, 10)
+  rows.value = invoice.rows || [{ id: 1, description: '', qty: 0, price: 0 }]
+
+  // Update counter to highest ID
+  if (rows.value.length > 0) {
+    counter = Math.max(...rows.value.map(r => r.id))
+  }
+}
+
+// Create new invoice
+async function createNewInvoice() {
+  const invoiceData = {
+    shopName: '',
+    date: new Date().toISOString().slice(0, 10),
+    rows: [{ id: 1, description: '', qty: 0, price: 0 }]
+  }
+
+  const id = await createInvoice(invoiceData)
+  currentInvoiceId.value = id
+  setCurrentInvoiceId(id)
+
+  shopName.value = ''
+  date.value = invoiceData.date
+  rows.value = [...invoiceData.rows]
+  counter = 1
+}
+
+// Save current invoice
+async function saveCurrentInvoice() {
+  if (!currentInvoiceId.value) return
+
+  try {
+    const invoiceData = {
+      shopName: shopName.value,
+      date: date.value,
+      rows: rows.value
+    }
+
+    await updateInvoice(currentInvoiceId.value, invoiceData)
+  } catch (error) {
+    console.error('Error saving invoice:', error)
+  }
+}
 
 function addRow() {
   rows.value.push({ id: ++counter, description: '', qty: 0, price: 0 })
@@ -38,11 +132,14 @@ function removeRow(index) {
   if (rows.value.length === 0) addRow()
 }
 
-function resetInvoice() {
-  shopName.value = ''
-  date.value = new Date().toISOString().slice(0, 10)
-  counter = 1
-  rows.value = [{ id: 1, description: '', qty: 1, price: 0 }]
+async function resetInvoice() {
+  // Save current invoice before creating new one
+  if (currentInvoiceId.value) {
+    await saveCurrentInvoice()
+  }
+
+  // Create new invoice
+  await createNewInvoice()
 }
 
 function printInvoice() {
