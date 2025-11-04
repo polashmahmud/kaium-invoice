@@ -8,6 +8,7 @@
             <th style="width: 50px;">#</th>
             <th>Description</th>
             <th style="width: 90px;">Qty</th>
+            <th style="width: 100px;">Unit</th>
             <th style="width: 110px;">Price</th>
             <th style="width: 110px;">Total</th>
             <th class="no-print" style="width: 60px;"></th>
@@ -30,6 +31,9 @@
               <q-input v-model.number="row.qty" type="number" min="0" step="1" dense borderless class="text-center"
                 @update:model-value="normalizeQty(row)" />
             </td>
+            <td class="unit-cell">
+              <q-select v-model="row.unit" :options="unitOptions" dense borderless options-dense />
+            </td>
             <td class="price-cell">
               <q-input v-model.number="row.price" type="number" min="0" step="0.01" dense borderless class="text-right"
                 @keydown.enter="(e) => handlePriceEnter(i, e)" />
@@ -42,7 +46,7 @@
         </tbody>
         <tfoot>
           <tr class="total-row-table">
-            <td colspan="4" class="text-right total-label-cell">
+            <td colspan="5" class="text-right total-label-cell">
               <strong>Gross Total:</strong>
             </td>
             <td class="text-right total-amount-cell">
@@ -79,12 +83,16 @@
               </div>
 
               <div class="row q-col-gutter-sm q-mt-xs">
-                <div class="col-6">
+                <div class="col-4">
                   <q-item-label caption><strong>Quantity:</strong></q-item-label>
                   <q-input v-model.number="row.qty" type="number" min="0" step="1" dense outlined
                     @update:model-value="normalizeQty(row)" />
                 </div>
-                <div class="col-6">
+                <div class="col-4">
+                  <q-item-label caption><strong>Unit:</strong></q-item-label>
+                  <q-select v-model="row.unit" :options="unitOptions" dense outlined options-dense />
+                </div>
+                <div class="col-4">
                   <q-item-label caption><strong>Price:</strong></q-item-label>
                   <q-input v-model.number="row.price" type="number" min="0" step="0.01" dense outlined
                     @keydown.enter="(e) => handlePriceEnter(i, e)" />
@@ -122,8 +130,9 @@
             <span class="print-item-desc">{{ row.description || 'No description' }}</span>
           </div>
           <div class="print-item-right">
-            <span class="print-calculation">{{ row.qty }} × {{ formatMoney(row.price) }} = {{ formatMoney(rowTotal(row))
-            }}</span>
+            <span class="print-calculation">{{ row.qty }} {{ row.unit || 'Pcs' }} × {{ formatMoney(row.price) }} = {{
+              formatMoney(rowTotal(row))
+              }}</span>
           </div>
         </div>
 
@@ -158,6 +167,22 @@ const props = defineProps({
 })
 
 const emit = defineEmits(['add-row', 'remove-row', 'print-invoice', 'download-image', 'reset-invoice'])
+
+// Unit options
+const unitOptions = [
+  'Pcs',
+  'Box',
+  'Carton',
+  'Dozen',
+  'Kg',
+  'Gram',
+  'Liter',
+  'Meter',
+  'Set',
+  'Pair',
+  'Pack',
+  'Unit'
+]
 
 const mobileListContainer = ref(null)
 

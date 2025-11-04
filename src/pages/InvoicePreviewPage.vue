@@ -28,9 +28,10 @@
               <span class="item-desc">{{ row.description || 'No description' }}</span>
             </div>
             <div class="item-right">
-              <span class="item-calc" v-if="showPrice">{{ row.qty }} × {{ formatMoney(row.price) }} = {{
-                formatMoney(rowTotal(row)) }}</span>
-              <span class="item-qty" v-else>Qty: {{ row.qty }}</span>
+              <span class="item-calc" v-if="showPrice">{{ row.qty }} {{ row.unit || 'Pcs' }} × {{ formatMoney(row.price)
+                }} = {{
+                  formatMoney(rowTotal(row)) }}</span>
+              <span class="item-qty" v-else>{{ row.qty }} {{ row.unit || 'Pcs' }}</span>
             </div>
           </div>
 
