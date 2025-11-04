@@ -47,11 +47,9 @@
 <script setup>
 import { ref, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
-import { useQuasar } from 'quasar'
 import { getAllInvoices, deleteInvoice, setCurrentInvoiceId } from 'src/utils/db.js'
 
 const router = useRouter()
-const $q = useQuasar()
 const invoices = ref([])
 
 onMounted(async () => {
@@ -127,22 +125,14 @@ async function handleDelete(invoiceId) {
     try {
         await deleteInvoice(invoiceId)
 
-        // Show success notification
-        $q.notify({
-            type: 'positive',
-            message: 'Invoice deleted successfully',
-            position: 'top'
-        })
-
         // Reload the list
         await loadInvoices()
+
+        // Optional: Show success message
+        console.log('Invoice deleted successfully')
     } catch (error) {
         console.error('Error deleting invoice:', error)
-        $q.notify({
-            type: 'negative',
-            message: 'Failed to delete invoice',
-            position: 'top'
-        })
+        alert('Failed to delete invoice. Please try again.')
     }
 }
 
