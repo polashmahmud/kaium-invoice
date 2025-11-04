@@ -15,8 +15,11 @@
 
 <script setup>
 import { ref } from 'vue'
+import { useRouter } from 'vue-router'
 import InvoiceHeader from 'components/InvoiceHeader.vue'
 import InvoiceTable from 'components/InvoiceTable.vue'
+
+const router = useRouter()
 
 const shopName = ref('')
 const date = ref(new Date().toISOString().slice(0, 10))
@@ -45,50 +48,18 @@ function resetInvoice() {
 function printInvoice() {
   window.print()
 }
-async function downloadImage() {
-  const area = document.getElementById('printArea')
-  if (!area) {
-    console.warn('print area not found')
-    return
+
+function downloadImage() {
+  // Save invoice data to sessionStorage
+  const invoiceData = {
+    shopName: shopName.value,
+    date: date.value,
+    rows: rows.value
   }
+  sessionStorage.setItem('invoicePreviewData', JSON.stringify(invoiceData))
 
-  const module = await import('html2canvas')
-  const html2canvas = module.default || module
-
-  const container = area.closest('.container')
-  const card = area.closest('.invoice-card')
-  if (container) container.classList.add('exporting')
-  if (card) card.classList.add('exporting')
-  area.classList.add('exporting')
-  let canvas
-  try {
-    const width = Math.max(area.scrollWidth, area.clientWidth)
-    const height = Math.max(area.scrollHeight, area.clientHeight)
-    canvas = await html2canvas(area, {
-      backgroundColor: '#ffffff',
-      scale: Math.max(window.devicePixelRatio || 1, 2),
-      useCORS: true,
-      width,
-      height,
-      windowWidth: width,
-      windowHeight: height,
-      scrollX: -window.scrollX,
-      scrollY: -window.scrollY
-    })
-  } finally {
-    area.classList.remove('exporting')
-    if (card) card.classList.remove('exporting')
-    if (container) container.classList.remove('exporting')
-  }
-
-  if (!canvas) return
-
-  const dataUrl = canvas.toDataURL('image/png')
-  const safeDate = (date.value || 'invoice').replace(/[^0-9a-zA-Z_-]/g, '-')
-  const link = document.createElement('a')
-  link.href = dataUrl
-  link.download = `invoice-${safeDate}.png`
-  link.click()
+  // Navigate to preview page
+  router.push('/preview')
 }
 </script>
 

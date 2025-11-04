@@ -120,7 +120,7 @@
           </div>
           <div class="print-item-right">
             <span class="print-calculation">{{ row.qty }} × {{ formatMoney(row.price) }} = {{ formatMoney(rowTotal(row))
-            }}</span>
+              }}</span>
           </div>
         </div>
 
@@ -456,6 +456,7 @@ function formatMoney(n) {
   }
 }
 
+/* Export/Image Download Styles */
 :deep(#printArea.exporting .desktop-only) {
   display: none !important;
 }
@@ -473,7 +474,22 @@ function formatMoney(n) {
   min-width: 100%;
 }
 
+:deep(#printArea.exporting .print-item) {
+  padding: 10px 0;
+  border-bottom: 1px solid #ddd;
+}
+
 :deep(#printArea.exporting .print-item-desc) {
   min-width: 300px;
+  white-space: pre-wrap;
+  word-break: break-word;
+}
+
+:deep(#printArea.exporting .print-grand-total) {
+  padding: 12px 0;
+  padding-top: 20px;
+  margin-top: 10px;
+  border-top: 2px solid #333;
+  background: transparent;
 }
 </style>
