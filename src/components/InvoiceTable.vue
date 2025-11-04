@@ -1,6 +1,7 @@
 <template>
   <div class="table-section">
-    <div class="table-wrapper">
+    <!-- Desktop Table View -->
+    <div class="table-wrapper desktop-only">
       <table class="inv-table">
         <thead>
           <tr>
@@ -53,13 +54,91 @@
       </table>
     </div>
 
+    <!-- Mobile List View -->
+    <div class="mobile-only">
+      <q-list bordered separator class="invoice-list">
+        <q-item v-for="(row, i) in rows" :key="row.id" class="invoice-item">
+          <q-item-section>
+            <q-item-label class="item-number">
+              <strong>Item #{{ i + 1 }}</strong>
+            </q-item-label>
+
+            <q-item-label caption class="q-mt-sm">
+              <strong>Description:</strong>
+            </q-item-label>
+            <div class="description-field">
+              <div class="description-editor">
+                <q-input v-model="row.description" type="textarea" autogrow dense outlined
+                  placeholder="Enter description" />
+              </div>
+              <div class="description-display">
+                <span v-if="row.description">{{ row.description }}</span>
+                <span v-else class="text-grey-6">No description</span>
+              </div>
+            </div>
+
+            <div class="row q-col-gutter-sm q-mt-xs">
+              <div class="col-6">
+                <q-item-label caption><strong>Quantity:</strong></q-item-label>
+                <q-input v-model.number="row.qty" type="number" min="0" step="1" dense outlined
+                  @update:model-value="normalizeQty(row)" />
+              </div>
+              <div class="col-6">
+                <q-item-label caption><strong>Price:</strong></q-item-label>
+                <q-input v-model.number="row.price" type="number" min="0" step="0.01" dense outlined />
+              </div>
+            </div>
+
+            <q-item-label class="q-mt-sm">
+              <strong>Total: {{ formatMoney(rowTotal(row)) }}</strong>
+            </q-item-label>
+
+            <div class="no-print q-mt-sm">
+              <q-btn flat dense color="negative" icon="delete" label="Remove" size="sm"
+                @click="$emit('remove-row', i)" />
+            </div>
+          </q-item-section>
+        </q-item>
+      </q-list>
+
+      <!-- Mobile Total -->
+      <div class="mobile-total q-pa-md">
+        <div class="text-h6 text-right">
+          <strong>Gross Total: {{ formatMoney(grossTotal) }}</strong>
+        </div>
+      </div>
+    </div>
+
+    <!-- Print View (List-based layout) -->
+    <div class="print-only">
+      <div class="print-invoice-list">
+        <!-- Items -->
+        <div v-for="(row, i) in rows" :key="row.id" class="print-item">
+          <div class="print-item-left">
+            <span class="print-item-num">{{ i + 1 }}.</span>
+            <span class="print-item-desc">{{ row.description || 'No description' }}</span>
+          </div>
+          <div class="print-item-right">
+            <span class="print-calculation">{{ row.qty }} × {{ formatMoney(row.price) }} = {{ formatMoney(rowTotal(row))
+            }}</span>
+          </div>
+        </div>
+
+        <!-- Total -->
+        <div class="print-grand-total">
+          <div class="print-total-left">Gross Total:</div>
+          <div class="print-total-right">{{ formatMoney(grossTotal) }}</div>
+        </div>
+      </div>
+    </div>
+
     <!-- Add Row Button -->
-    <div class="no-print">
+    <div class="no-print q-mt-md">
       <q-btn-group spread rounded>
-        <q-btn icon="add" @click="$emit('add-row')" />
-        <q-btn icon="print" @click="$emit('print-invoice')" />
-        <q-btn icon="image" @click="$emit('download-image')" />
-        <q-btn icon="refresh" @click="$emit('reset-invoice')" />
+        <q-btn icon="add" label="Add" @click="$emit('add-row')" />
+        <q-btn icon="print" label="Print" @click="$emit('print-invoice')" />
+        <q-btn icon="image" label="Image" @click="$emit('download-image')" />
+        <q-btn icon="refresh" label="Reset" @click="$emit('reset-invoice')" />
       </q-btn-group>
     </div>
   </div>
@@ -103,6 +182,19 @@ function formatMoney(n) {
 <style scoped>
 .table-section {
   margin-top: 1.5rem;
+}
+
+/* Desktop/Tablet: Show table, hide list */
+.mobile-only {
+  display: none;
+}
+
+.desktop-only {
+  display: block;
+}
+
+.print-only {
+  display: none;
 }
 
 .table-wrapper {
@@ -173,21 +265,6 @@ function formatMoney(n) {
   text-align: right;
 }
 
-.add-row-section {
-  margin: 0.75rem 0 0;
-  display: flex;
-  align-items: center;
-  gap: 12px;
-}
-
-.add-row-button {
-  min-width: 140px;
-}
-
-.action-icon-button {
-  flex-shrink: 0;
-}
-
 .total-label-cell {
   font-weight: 600;
 }
@@ -204,70 +281,199 @@ function formatMoney(n) {
   text-align: center;
 }
 
+/* Mobile List Styles */
+.invoice-list {
+  border-radius: 8px;
+  overflow: hidden;
+}
+
+.invoice-item {
+  padding: 1rem;
+  background: white;
+}
+
+.item-number {
+  font-size: 1.1rem;
+  margin-bottom: 0.5rem;
+  color: #1976d2;
+}
+
+.description-field {
+  margin-top: 0.25rem;
+  margin-bottom: 0.5rem;
+}
+
+.mobile-total {
+  background: #f5f5f5;
+  border: 2px solid #1976d2;
+  border-radius: 8px;
+  margin-top: 1rem;
+}
+
+/* Print Layout Styles - List View */
+.print-invoice-list {
+  width: 100%;
+}
+
+.print-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  padding: 10px 0;
+  border-bottom: 1px solid #ddd;
+  min-height: 40px;
+  gap: 15px;
+}
+
+.print-item:last-of-type {
+  border-bottom: 1px solid #ddd;
+}
+
+.print-item-left {
+  flex: 1;
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  min-width: 0;
+}
+
+.print-item-num {
+  font-weight: bold;
+  flex-shrink: 0;
+  font-size: 14px;
+}
+
+.print-item-desc {
+  flex: 1;
+  white-space: pre-wrap;
+  word-break: break-word;
+  line-height: 1.4;
+  font-size: 13px;
+}
+
+.print-item-right {
+  flex-shrink: 0;
+  text-align: right;
+  font-weight: 600;
+  font-size: 13px;
+  white-space: nowrap;
+}
+
+.print-calculation {
+  display: inline-block;
+}
+
+.print-grand-total {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 12px 0;
+  padding-top: 20px;
+  margin-top: 10px;
+  background: transparent;
+  font-weight: bold;
+  font-size: 16px;
+}
+
+.print-total-left {
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.print-total-right {
+  font-size: 18px;
+}
+
+/* Mobile: Hide table, show list */
+@media (max-width: 768px) {
+  .desktop-only {
+    display: none !important;
+  }
+
+  .mobile-only {
+    display: block;
+  }
+
+  .mobile-only .description-editor {
+    display: block;
+  }
+
+  .mobile-only .description-display {
+    display: none;
+  }
+}
+
 @media print {
   .no-print {
     display: none !important;
   }
 
-  .description-editor {
+  /* Hide desktop and mobile views in print */
+  .desktop-only {
     display: none !important;
   }
 
-  .description-display {
-    display: block;
+  .mobile-only {
+    display: none !important;
   }
 
-  .table-wrapper {
-    margin-bottom: 0;
+  /* Show only print view */
+  .print-only {
+    display: block !important;
   }
 
-  .inv-table {
+  .print-invoice-list {
     page-break-inside: auto;
-    border: 1px solid #000;
   }
 
-  .inv-table tr {
+  .print-item {
     page-break-inside: avoid;
     page-break-after: auto;
+    padding: 8px 0;
   }
 
-  .inv-table th,
-  .inv-table td {
-    padding: 3px 5px;
-    font-size: 10.5px;
-    line-height: 1.15;
+  .print-item-num {
+    font-size: 12px;
   }
 
-  .inv-table thead th {
-    background: #fff !important;
+  .print-item-desc {
+    font-size: 11px;
+    line-height: 1.3;
   }
 
-  .total-label-cell,
-  .total-amount-cell {
-    padding: 6px !important;
+  .print-item-right {
+    font-size: 11px;
+  }
+
+  .print-grand-total {
+    padding: 10px 0;
+    padding-top: 15px;
+    font-size: 14px;
+  }
+
+  .print-total-right {
+    font-size: 16px;
   }
 }
 
-:deep(#printArea.exporting .description-editor) {
+:deep(#printArea.exporting .desktop-only) {
   display: none !important;
 }
 
-:deep(#printArea.exporting .description-display) {
-  display: block !important;
-  white-space: pre-wrap !important;
-  word-break: break-word !important;
-  overflow-wrap: break-word !important;
+:deep(#printArea.exporting .mobile-only) {
+  display: none !important;
 }
 
-:deep(#printArea.exporting .inv-table) {
+:deep(#printArea.exporting .print-only) {
+  display: block !important;
+}
+
+:deep(#printArea.exporting .print-invoice-list) {
   width: auto;
   min-width: 100%;
-  table-layout: auto;
 }
 
-:deep(#printArea.exporting .description-cell) {
-  max-width: 900px;
-  min-width: 600px;
-  width: 900px;
+:deep(#printArea.exporting .print-item-desc) {
+  min-width: 300px;
 }
 </style>
