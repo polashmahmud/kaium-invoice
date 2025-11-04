@@ -31,8 +31,8 @@
                 @update:model-value="normalizeQty(row)" />
             </td>
             <td class="price-cell">
-              <q-input v-model.number="row.price" type="number" min="0" step="0.01" dense borderless
-                class="text-right" />
+              <q-input v-model.number="row.price" type="number" min="0" step="0.01" dense borderless class="text-right"
+                @keydown.enter="(e) => handlePriceEnter(i, e)" />
             </td>
             <td class="text-right">{{ formatMoney(rowTotal(row)) }}</td>
             <td class="no-print text-center">
@@ -86,7 +86,8 @@
                 </div>
                 <div class="col-6">
                   <q-item-label caption><strong>Price:</strong></q-item-label>
-                  <q-input v-model.number="row.price" type="number" min="0" step="0.01" dense outlined />
+                  <q-input v-model.number="row.price" type="number" min="0" step="0.01" dense outlined
+                    @keydown.enter="(e) => handlePriceEnter(i, e)" />
                 </div>
               </div>
 
@@ -156,9 +157,22 @@ const props = defineProps({
   }
 })
 
-defineEmits(['add-row', 'remove-row', 'print-invoice', 'download-image', 'reset-invoice'])
+const emit = defineEmits(['add-row', 'remove-row', 'print-invoice', 'download-image', 'reset-invoice'])
 
 const mobileListContainer = ref(null)
+
+// Handle Enter key on price field
+function handlePriceEnter(index, event) {
+  // Check if this is the last row
+  if (index === props.rows.length - 1) {
+    // Prevent default behavior to stop Enter from being added to description
+    event.preventDefault()
+    event.stopPropagation()
+
+    // Add new row
+    emit('add-row')
+  }
+}
 
 // Watch for new rows and scroll to the last item + focus on description
 watch(() => props.rows.length, async (newLength, oldLength) => {
