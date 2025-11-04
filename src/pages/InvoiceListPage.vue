@@ -2,7 +2,10 @@
     <q-page class="list-page">
         <div class="list-container">
             <div class="page-header">
-                <h5 class="page-title">All Invoices</h5>
+                <h5 class="page-title">
+                    All Invoices
+                    <q-badge color="primary" :label="invoices.length" class="q-ml-sm" />
+                </h5>
                 <q-btn icon="refresh" flat round dense @click="loadInvoices" />
             </div>
 
