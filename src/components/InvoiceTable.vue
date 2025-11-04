@@ -122,7 +122,7 @@
           </div>
           <div class="print-item-right">
             <span class="print-calculation">{{ row.qty }} × {{ formatMoney(row.price) }} = {{ formatMoney(rowTotal(row))
-              }}</span>
+            }}</span>
           </div>
         </div>
 
@@ -165,20 +165,33 @@ watch(() => props.rows.length, async (newLength, oldLength) => {
   if (newLength > oldLength) {
     await nextTick()
 
-    // Scroll to bottom for mobile view
-    if (mobileListContainer.value) {
-      const container = mobileListContainer.value
-      container.scrollTop = container.scrollHeight
-    }
-
-    // Focus on the last description field
-    await nextTick()
-
     // Try to find and focus the description input for the last item
     const descriptionInputs = document.querySelectorAll('.description-editor textarea')
     if (descriptionInputs.length > 0) {
       const lastInput = descriptionInputs[descriptionInputs.length - 1]
+
+      // Focus first
       lastInput?.focus()
+
+      // Then scroll after a short delay to ensure proper positioning
+      await nextTick()
+      setTimeout(() => {
+        if (mobileListContainer.value) {
+          const container = mobileListContainer.value
+          // Scroll to bottom smoothly
+          container.scrollTo({
+            top: container.scrollHeight,
+            behavior: 'smooth'
+          })
+        }
+
+        // Scroll the input into view if needed
+        lastInput?.scrollIntoView({
+          behavior: 'smooth',
+          block: 'start',
+          inline: 'nearest'
+        })
+      }, 100)
     }
   }
 })

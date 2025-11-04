@@ -30,7 +30,7 @@ const rows = ref([
 ])
 
 function addRow() {
-  rows.value.push({ id: ++counter, description: '', qty: 1, price: 0 })
+  rows.value.push({ id: ++counter, description: '', qty: 0, price: 0 })
 }
 
 function removeRow(index) {
