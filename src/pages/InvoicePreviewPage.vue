@@ -54,7 +54,7 @@ import { getInvoice } from 'src/utils/db.js'
 const router = useRouter()
 const route = useRoute()
 
-const showPrice = ref(true)
+const showPrice = ref(false)
 
 const invoiceData = ref({
   shopName: '',
