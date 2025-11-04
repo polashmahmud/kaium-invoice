@@ -19,6 +19,14 @@
     <q-page-container>
       <router-view />
     </q-page-container>
+
+    <!-- Footer -->
+    <q-footer elevated class="bg-white text-dark">
+      <q-toolbar class="footer-toolbar">
+        <q-btn flat icon="home" label="Home" class="footer-btn" to="/" />
+        <q-btn flat icon="list" label="List" class="footer-btn" to="/preview" />
+      </q-toolbar>
+    </q-footer>
   </q-layout>
 </template>
 
@@ -77,3 +85,24 @@
 //   leftDrawerOpen.value = !leftDrawerOpen.value
 // }
 </script>
+
+<style scoped>
+.footer-toolbar {
+  display: flex;
+  justify-content: space-around;
+  padding: 0.5rem 0;
+  border-top: 1px solid #e0e0e0;
+}
+
+.footer-btn {
+  flex: 1;
+  max-width: 200px;
+  font-size: 0.9rem;
+}
+
+@media print {
+  .q-footer {
+    display: none !important;
+  }
+}
+</style>

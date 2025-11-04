@@ -56,55 +56,57 @@
 
     <!-- Mobile List View -->
     <div class="mobile-only">
-      <q-list bordered separator class="invoice-list">
-        <q-item v-for="(row, i) in rows" :key="row.id" class="invoice-item">
-          <q-item-section>
-            <q-item-label class="item-number">
-              <strong>Item #{{ i + 1 }}</strong>
-            </q-item-label>
+      <div ref="mobileListContainer" class="mobile-list-container">
+        <q-list bordered separator class="invoice-list">
+          <q-item v-for="(row, i) in rows" :key="row.id" class="invoice-item">
+            <q-item-section>
+              <q-item-label class="item-number">
+                <strong>Item #{{ i + 1 }}</strong>
+              </q-item-label>
 
-            <q-item-label caption class="q-mt-sm">
-              <strong>Description:</strong>
-            </q-item-label>
-            <div class="description-field">
-              <div class="description-editor">
-                <q-input v-model="row.description" type="textarea" autogrow dense outlined
-                  placeholder="Enter description" />
+              <q-item-label caption class="q-mt-sm">
+                <strong>Description:</strong>
+              </q-item-label>
+              <div class="description-field">
+                <div class="description-editor">
+                  <q-input v-model="row.description" type="textarea" autogrow dense outlined
+                    placeholder="Enter description" />
+                </div>
+                <div class="description-display">
+                  <span v-if="row.description">{{ row.description }}</span>
+                  <span v-else class="text-grey-6">No description</span>
+                </div>
               </div>
-              <div class="description-display">
-                <span v-if="row.description">{{ row.description }}</span>
-                <span v-else class="text-grey-6">No description</span>
+
+              <div class="row q-col-gutter-sm q-mt-xs">
+                <div class="col-6">
+                  <q-item-label caption><strong>Quantity:</strong></q-item-label>
+                  <q-input v-model.number="row.qty" type="number" min="0" step="1" dense outlined
+                    @update:model-value="normalizeQty(row)" />
+                </div>
+                <div class="col-6">
+                  <q-item-label caption><strong>Price:</strong></q-item-label>
+                  <q-input v-model.number="row.price" type="number" min="0" step="0.01" dense outlined />
+                </div>
               </div>
-            </div>
 
-            <div class="row q-col-gutter-sm q-mt-xs">
-              <div class="col-6">
-                <q-item-label caption><strong>Quantity:</strong></q-item-label>
-                <q-input v-model.number="row.qty" type="number" min="0" step="1" dense outlined
-                  @update:model-value="normalizeQty(row)" />
+              <q-item-label class="q-mt-sm">
+                <strong>Total: {{ formatMoney(rowTotal(row)) }}</strong>
+              </q-item-label>
+
+              <div class="no-print q-mt-sm">
+                <q-btn flat dense color="negative" icon="delete" label="Remove" size="sm"
+                  @click="$emit('remove-row', i)" />
               </div>
-              <div class="col-6">
-                <q-item-label caption><strong>Price:</strong></q-item-label>
-                <q-input v-model.number="row.price" type="number" min="0" step="0.01" dense outlined />
-              </div>
-            </div>
+            </q-item-section>
+          </q-item>
+        </q-list>
 
-            <q-item-label class="q-mt-sm">
-              <strong>Total: {{ formatMoney(rowTotal(row)) }}</strong>
-            </q-item-label>
-
-            <div class="no-print q-mt-sm">
-              <q-btn flat dense color="negative" icon="delete" label="Remove" size="sm"
-                @click="$emit('remove-row', i)" />
-            </div>
-          </q-item-section>
-        </q-item>
-      </q-list>
-
-      <!-- Mobile Total -->
-      <div class="mobile-total q-pa-md">
-        <div class="text-h6 text-right">
-          <strong>Gross Total: {{ formatMoney(grossTotal) }}</strong>
+        <!-- Mobile Total -->
+        <div class="mobile-total q-pa-md">
+          <div class="text-h6 text-right">
+            <strong>Gross Total: {{ formatMoney(grossTotal) }}</strong>
+          </div>
         </div>
       </div>
     </div>
@@ -120,7 +122,7 @@
           </div>
           <div class="print-item-right">
             <span class="print-calculation">{{ row.qty }} × {{ formatMoney(row.price) }} = {{ formatMoney(rowTotal(row))
-              }}</span>
+            }}</span>
           </div>
         </div>
 
@@ -135,17 +137,17 @@
     <!-- Add Row Button -->
     <div class="no-print q-mt-md">
       <q-btn-group spread rounded>
-        <q-btn icon="add" label="Add" @click="$emit('add-row')" />
-        <q-btn icon="print" label="Print" @click="$emit('print-invoice')" />
-        <q-btn icon="image" label="Image" @click="$emit('download-image')" />
-        <q-btn icon="refresh" label="Reset" @click="$emit('reset-invoice')" />
+        <q-btn icon="add" @click="$emit('add-row')" />
+        <q-btn icon="print" @click="$emit('print-invoice')" />
+        <q-btn icon="image" @click="$emit('download-image')" />
+        <q-btn icon="refresh" @click="$emit('reset-invoice')" />
       </q-btn-group>
     </div>
   </div>
 </template>
 
 <script setup>
-import { computed } from 'vue'
+import { computed, ref, watch, nextTick } from 'vue'
 
 const props = defineProps({
   rows: {
@@ -155,6 +157,18 @@ const props = defineProps({
 })
 
 defineEmits(['add-row', 'remove-row', 'print-invoice', 'download-image', 'reset-invoice'])
+
+const mobileListContainer = ref(null)
+
+// Watch for new rows and scroll to the last item
+watch(() => props.rows.length, async (newLength, oldLength) => {
+  if (newLength > oldLength && mobileListContainer.value) {
+    await nextTick()
+    // Scroll to bottom to show the latest item
+    const container = mobileListContainer.value
+    container.scrollTop = container.scrollHeight
+  }
+})
 
 function normalizeQty(row) {
   if (row.qty < 0) row.qty = 0
@@ -282,14 +296,44 @@ function formatMoney(n) {
 }
 
 /* Mobile List Styles */
+.mobile-list-container {
+  max-height: calc(100vh - 300px);
+  overflow-y: auto;
+  scroll-behavior: smooth;
+  border-radius: 8px;
+  background: white;
+}
+
+/* Custom scrollbar for mobile list */
+.mobile-list-container::-webkit-scrollbar {
+  width: 8px;
+}
+
+.mobile-list-container::-webkit-scrollbar-track {
+  background: #f1f1f1;
+  border-radius: 4px;
+}
+
+.mobile-list-container::-webkit-scrollbar-thumb {
+  background: #888;
+  border-radius: 4px;
+}
+
+.mobile-list-container::-webkit-scrollbar-thumb:hover {
+  background: #555;
+}
+
 .invoice-list {
   border-radius: 8px;
-  overflow: hidden;
+  overflow: visible;
 }
 
 .invoice-item {
   padding: 1rem;
   background: white;
+  min-height: calc(100vh - 350px);
+  display: flex;
+  align-items: center;
 }
 
 .item-number {
@@ -306,8 +350,10 @@ function formatMoney(n) {
 .mobile-total {
   background: #f5f5f5;
   border: 2px solid #1976d2;
-  border-radius: 8px;
-  margin-top: 1rem;
+  border-radius: 0 0 8px 8px;
+  position: sticky;
+  bottom: 0;
+  z-index: 10;
 }
 
 /* Print Layout Styles - List View */
