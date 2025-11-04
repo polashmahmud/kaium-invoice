@@ -18,7 +18,7 @@
             <td class="description-cell">
               <div class="description-editor">
                 <q-input v-model="row.description" type="textarea" autogrow dense borderless
-                  placeholder="Item description" input-class="description-input" />
+                  input-class="description-input" />
               </div>
               <div class="description-display">
                 <span v-if="row.description">{{ row.description }}</span>
@@ -35,7 +35,7 @@
             </td>
             <td class="text-right">{{ formatMoney(rowTotal(row)) }}</td>
             <td class="no-print text-center">
-              <q-btn flat round dense icon="close" size="sm" @click="$emit('remove-row', i)" />
+              <q-btn flat round dense icon="delete" size="sm" @click="$emit('remove-row', i)" />
             </td>
           </tr>
         </tbody>
@@ -54,14 +54,13 @@
     </div>
 
     <!-- Add Row Button -->
-    <div class="add-row-section no-print">
-      <q-btn outline color="primary" icon="add" label="Add New" class="add-row-button" @click="$emit('add-row')" />
-      <q-btn round color="primary" icon="print" class="action-icon-button" aria-label="Print invoice"
-        @click="$emit('print-invoice')" />
-      <q-btn round color="secondary" icon="image" class="action-icon-button" aria-label="Export invoice snapshot"
-        @click="$emit('download-image')" />
-      <q-btn round color="negative" icon="refresh" class="action-icon-button" aria-label="Reset invoice"
-        @click="$emit('reset-invoice')" />
+    <div class="no-print">
+      <q-btn-group spread>
+        <q-btn label="Add New" icon="add" @click="$emit('add-row')" />
+        <q-btn label="Print" icon="print" @click="$emit('print-invoice')" />
+        <q-btn label="Image" icon="image" @click="$emit('download-image')" />
+        <q-btn label="Refresh" icon="refresh" @click="$emit('reset-invoice')" />
+      </q-btn-group>
     </div>
   </div>
 </template>

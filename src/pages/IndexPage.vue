@@ -23,7 +23,7 @@ const date = ref(new Date().toISOString().slice(0, 10))
 
 let counter = 3
 const rows = ref([
-  { id: 1, description: '', qty: 1, price: 0 },
+  { id: 1, description: '', qty: 0, price: 0 },
 ])
 
 function addRow() {
