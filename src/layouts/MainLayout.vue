@@ -24,7 +24,7 @@
     <q-footer elevated class="bg-white text-dark">
       <q-toolbar class="footer-toolbar">
         <q-btn flat icon="home" label="Home" class="footer-btn" to="/" />
-        <q-btn flat icon="list" label="List" class="footer-btn" to="/preview" />
+        <q-btn flat icon="list" label="List" class="footer-btn" to="/list" />
       </q-toolbar>
     </q-footer>
   </q-layout>

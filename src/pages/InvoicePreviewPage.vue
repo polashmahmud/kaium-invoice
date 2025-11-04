@@ -44,6 +44,7 @@
 <script setup>
 import { computed, onMounted, ref } from 'vue'
 import { useRouter, useRoute } from 'vue-router'
+import { getInvoice } from 'src/utils/db.js'
 
 const router = useRouter()
 const route = useRoute()
@@ -54,11 +55,27 @@ const invoiceData = ref({
   rows: []
 })
 
-onMounted(() => {
-  // Get data from route state or sessionStorage
-  if (route.params.data) {
+onMounted(async () => {
+  // Check if there's an invoice ID in the route
+  if (route.params.id) {
+    const invoiceId = parseInt(route.params.id)
+    try {
+      const invoice = await getInvoice(invoiceId)
+      if (invoice) {
+        invoiceData.value = {
+          shopName: invoice.shopName || '',
+          date: invoice.date || '',
+          rows: invoice.rows || []
+        }
+      }
+    } catch (error) {
+      console.error('Error loading invoice:', error)
+    }
+  } else if (route.params.data) {
+    // Get data from route params
     invoiceData.value = JSON.parse(decodeURIComponent(route.params.data))
   } else {
+    // Get data from sessionStorage
     const stored = sessionStorage.getItem('invoicePreviewData')
     if (stored) {
       invoiceData.value = JSON.parse(stored)
