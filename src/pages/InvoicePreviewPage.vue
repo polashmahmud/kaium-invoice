@@ -4,7 +4,10 @@
       <!-- Action Bar -->
       <div class="action-bar no-print">
         <q-btn icon="arrow_back" label="Back" flat @click="goBack" />
-        <q-btn icon="download" label="Download Image" color="primary" @click="downloadImage" />
+        <div class="action-right">
+          <q-checkbox v-model="showPrice" label="Show Price" dense />
+          <q-btn icon="download" round color="primary" @click="downloadImage" class="q-ml-sm" />
+        </div>
       </div>
 
       <!-- Invoice Preview Area -->
@@ -25,13 +28,14 @@
               <span class="item-desc">{{ row.description || 'No description' }}</span>
             </div>
             <div class="item-right">
-              <span class="item-calc">{{ row.qty }} × {{ formatMoney(row.price) }} = {{
+              <span class="item-calc" v-if="showPrice">{{ row.qty }} × {{ formatMoney(row.price) }} = {{
                 formatMoney(rowTotal(row)) }}</span>
+              <span class="item-qty" v-else>Qty: {{ row.qty }}</span>
             </div>
           </div>
 
           <!-- Grand Total -->
-          <div class="grand-total">
+          <div class="grand-total" v-if="showPrice">
             <div class="total-left">Gross Total:</div>
             <div class="total-right">{{ formatMoney(grossTotal) }}</div>
           </div>
@@ -48,6 +52,8 @@ import { getInvoice } from 'src/utils/db.js'
 
 const router = useRouter()
 const route = useRoute()
+
+const showPrice = ref(true)
 
 const invoiceData = ref({
   shopName: '',
@@ -156,6 +162,11 @@ async function downloadImage() {
   justify-content: space-between;
   align-items: center;
   box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.action-right {
+  display: flex;
+  align-items: center;
 }
 
 .invoice-preview {
