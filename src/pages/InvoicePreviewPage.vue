@@ -25,13 +25,15 @@
           <div v-for="(row, i) in invoiceData.rows" :key="row.id" class="item-row">
             <div class="item-left">
               <span class="item-num">{{ i + 1 }}.</span>
-              <span class="item-desc">{{ row.description || 'No description' }}</span>
+              <span class="item-desc">
+                {{ row.description || 'No description' }}
+                <span v-if="!showPrice" class="item-qty-inline"> - <strong>{{ row.qty }} {{ row.unit || 'Pcs'
+                    }}</strong></span>
+              </span>
             </div>
-            <div class="item-right">
-              <span class="item-calc" v-if="showPrice">{{ row.qty }} {{ row.unit || 'Pcs' }} × {{ formatMoney(row.price)
-              }} = {{
-                  formatMoney(rowTotal(row)) }}</span>
-              <span class="item-qty" v-else>{{ row.qty }} {{ row.unit || 'Pcs' }}</span>
+            <div class="item-right" v-if="showPrice">
+              <span class="item-calc">{{ row.qty }} {{ row.unit || 'Pcs' }} × {{ formatMoney(row.price) }} = {{
+                formatMoney(rowTotal(row)) }}</span>
             </div>
           </div>
 
@@ -257,6 +259,16 @@ async function downloadImage() {
   color: #222;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
+}
+
+.item-qty-inline {
+  font-weight: normal;
+  color: #222;
+}
+
+.item-qty-inline strong {
+  font-weight: 700;
+  color: #000;
 }
 
 .item-right {
