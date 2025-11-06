@@ -29,7 +29,7 @@
             </div>
             <div class="item-right">
               <span class="item-calc" v-if="showPrice">{{ row.qty }} {{ row.unit || 'Pcs' }} × {{ formatMoney(row.price)
-                }} = {{
+              }} = {{
                   formatMoney(rowTotal(row)) }}</span>
               <span class="item-qty" v-else>{{ row.qty }} {{ row.unit || 'Pcs' }}</span>
             </div>
@@ -122,15 +122,28 @@ async function downloadImage() {
   const html2canvas = module.default || module
 
   try {
+    // Calculate optimal scale based on content height
+    const contentHeight = area.scrollHeight
+    const scale = contentHeight > 1500 ? 4 : 3 // Higher scale for longer invoices
+
     const canvas = await html2canvas(area, {
       backgroundColor: '#ffffff',
-      scale: Math.max(window.devicePixelRatio || 1, 2),
+      scale: scale,
       useCORS: true,
+      allowTaint: true,
       scrollX: 0,
-      scrollY: 0
+      scrollY: 0,
+      windowWidth: area.scrollWidth,
+      windowHeight: area.scrollHeight,
+      width: area.scrollWidth,
+      height: area.scrollHeight,
+      logging: false,
+      imageTimeout: 0,
+      removeContainer: true
     })
 
-    const dataUrl = canvas.toDataURL('image/png')
+    // Convert to high quality PNG
+    const dataUrl = canvas.toDataURL('image/png', 1.0)
     const safeDate = (invoiceData.value.date || 'invoice').replace(/[^0-9a-zA-Z_-]/g, '-')
     const link = document.createElement('a')
     link.href = dataUrl
@@ -175,6 +188,9 @@ async function downloadImage() {
   padding: 2rem;
   border-radius: 8px;
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  text-rendering: optimizeLegibility;
 }
 
 /* Header Styles */
@@ -189,11 +205,16 @@ async function downloadImage() {
   font-weight: bold;
   margin: 0 0 0.5rem 0;
   color: #1976d2;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
 }
 
 .invoice-date {
   font-size: 1rem;
-  color: #666;
+  color: #333;
+  font-weight: 500;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
 }
 
 /* Items List Styles */
@@ -221,26 +242,32 @@ async function downloadImage() {
 .item-num {
   font-weight: bold;
   flex-shrink: 0;
-  font-size: 15px;
-  color: #333;
+  font-size: 16px;
+  color: #000;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
 }
 
 .item-desc {
   flex: 1;
   white-space: pre-wrap;
   word-break: break-word;
-  line-height: 1.5;
-  font-size: 14px;
-  color: #444;
+  line-height: 1.6;
+  font-size: 15px;
+  color: #222;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
 }
 
 .item-right {
   flex-shrink: 0;
   text-align: right;
   font-weight: 600;
-  font-size: 14px;
+  font-size: 15px;
   white-space: nowrap;
-  color: #333;
+  color: #000;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
 }
 
 .grand-total {
@@ -257,12 +284,17 @@ async function downloadImage() {
   text-transform: uppercase;
   letter-spacing: 0.5px;
   font-size: 1.2rem;
-  color: #333;
+  color: #000;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
 }
 
 .total-right {
   font-size: 1.4rem;
   color: #1976d2;
+  font-weight: bold;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
 }
 
 /* Mobile Responsive */

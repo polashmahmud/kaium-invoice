@@ -132,7 +132,7 @@
           <div class="print-item-right">
             <span class="print-calculation">{{ row.qty }} {{ row.unit || 'Pcs' }} × {{ formatMoney(row.price) }} = {{
               formatMoney(rowTotal(row))
-              }}</span>
+            }}</span>
           </div>
         </div>
 
@@ -424,6 +424,9 @@ function formatMoney(n) {
 /* Print Layout Styles - List View */
 .print-invoice-list {
   width: 100%;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  text-rendering: optimizeLegibility;
 }
 
 .print-item {
@@ -451,23 +454,32 @@ function formatMoney(n) {
 .print-item-num {
   font-weight: bold;
   flex-shrink: 0;
-  font-size: 14px;
+  font-size: 15px;
+  color: #000;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
 }
 
 .print-item-desc {
   flex: 1;
   white-space: pre-wrap;
   word-break: break-word;
-  line-height: 1.4;
-  font-size: 13px;
+  line-height: 1.5;
+  font-size: 14px;
+  color: #222;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
 }
 
 .print-item-right {
   flex-shrink: 0;
   text-align: right;
   font-weight: 600;
-  font-size: 13px;
+  font-size: 14px;
   white-space: nowrap;
+  color: #000;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
 }
 
 .print-calculation {
@@ -483,16 +495,22 @@ function formatMoney(n) {
   margin-top: 10px;
   background: transparent;
   font-weight: bold;
-  font-size: 16px;
+  font-size: 17px;
+  color: #000;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
 }
 
 .print-total-left {
   text-transform: uppercase;
   letter-spacing: 0.5px;
+  color: #000;
 }
 
 .print-total-right {
-  font-size: 18px;
+  font-size: 19px;
+  font-weight: bold;
+  color: #000;
 }
 
 /* Mobile: Hide table, show list */

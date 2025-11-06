@@ -84,6 +84,8 @@ const displayDate = computed(() => {
   text-transform: uppercase;
   margin: 0 0 2px 0;
   color: #000;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
 }
 
 .editable {
@@ -93,6 +95,8 @@ const displayDate = computed(() => {
   gap: 4px;
   cursor: pointer;
   border-bottom: 1px dashed transparent;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
 }
 
 .editable:focus,
@@ -105,6 +109,8 @@ const displayDate = computed(() => {
   color: #000;
   margin: 0;
   line-height: 1.2;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
 }
 
 @media print {
