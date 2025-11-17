@@ -128,6 +128,16 @@
               </div>
             </div>
           </div>
+
+          <!-- Customer Commitment (Mobile View) -->
+          <div v-if="commitmentDate || commitmentAmount" class="mobile-commitment q-mt-md print-only">
+            <div class="commitment-label">Customer Commitment:</div>
+            <div class="commitment-info">
+              <span v-if="commitmentDate">Date: {{ formatDate(commitmentDate) }}</span>
+              <span v-if="commitmentDate && commitmentAmount"> | </span>
+              <span v-if="commitmentAmount">Amount: {{ formatMoney(commitmentAmount) }}</span>
+            </div>
+          </div>
         </div>
       </div>
     </div>
@@ -144,7 +154,7 @@
           <div class="print-item-right">
             <span class="print-calculation">{{ row.qty }} {{ row.unit || 'Pcs' }} × {{ formatMoney(row.price) }} = {{
               formatMoney(rowTotal(row))
-              }}</span>
+            }}</span>
           </div>
         </div>
 
@@ -152,6 +162,16 @@
         <div class="print-grand-total">
           <div class="print-total-left">Gross Total:</div>
           <div class="print-total-right">{{ formatMoney(grossTotal) }}</div>
+        </div>
+
+        <!-- Customer Commitment (Print View) -->
+        <div v-if="commitmentDate || commitmentAmount" class="print-commitment">
+          <div class="commitment-title">Customer Commitment:</div>
+          <div class="commitment-details">
+            <span v-if="commitmentDate">Date: {{ formatDate(commitmentDate) }}</span>
+            <span v-if="commitmentDate && commitmentAmount" class="commitment-separator"> | </span>
+            <span v-if="commitmentAmount">Amount: {{ formatMoney(commitmentAmount) }}</span>
+          </div>
         </div>
       </div>
     </div>
@@ -298,6 +318,12 @@ function formatMoney(n) {
     minimumFractionDigits: 2,
     maximumFractionDigits: 2
   })
+}
+
+function formatDate(dateStr) {
+  if (!dateStr) return ''
+  const date = new Date(dateStr)
+  return date.toLocaleDateString('en-GB', { day: '2-digit', month: '2-digit', year: 'numeric' })
 }
 
 function openCommitmentDialog() {
@@ -577,6 +603,46 @@ function saveCommitment() {
   font-size: 19px;
   font-weight: bold;
   color: #000;
+}
+
+/* Customer Commitment Styles */
+.print-commitment {
+  margin-top: 20px;
+  padding-top: 15px;
+  border-top: 1px solid #ddd;
+  font-size: 14px;
+  color: #333;
+}
+
+.commitment-title {
+  font-weight: bold;
+  margin-bottom: 5px;
+  color: #000;
+}
+
+.commitment-details {
+  font-size: 13px;
+}
+
+.commitment-separator {
+  margin: 0 8px;
+}
+
+.mobile-commitment {
+  padding-top: 12px;
+  border-top: 1px solid #e0e0e0;
+  font-size: 14px;
+}
+
+.commitment-label {
+  font-weight: 600;
+  margin-bottom: 4px;
+  color: #1976d2;
+}
+
+.commitment-info {
+  font-size: 13px;
+  color: #333;
 }
 
 /* Mobile: Hide table, show list */

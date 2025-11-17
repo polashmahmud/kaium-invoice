@@ -28,7 +28,7 @@
               <span class="item-desc">
                 {{ row.description || 'No description' }}
                 <span v-if="!showPrice" class="item-qty-inline"> - <strong>{{ row.qty }} {{ row.unit || 'Pcs'
-                    }}</strong></span>
+                }}</strong></span>
               </span>
             </div>
             <div class="item-right" v-if="showPrice">
@@ -41,6 +41,17 @@
           <div class="grand-total" v-if="showPrice">
             <div class="total-left">Gross Total:</div>
             <div class="total-right">{{ formatMoney(grossTotal) }}</div>
+          </div>
+
+          <!-- Customer Commitment -->
+          <div v-if="invoiceData.commitmentDate || invoiceData.commitmentAmount" class="commitment-section">
+            <div class="commitment-title">Customer Commitment:</div>
+            <div class="commitment-details">
+              <span v-if="invoiceData.commitmentDate">Date: {{ formatDate(invoiceData.commitmentDate) }}</span>
+              <span v-if="invoiceData.commitmentDate && invoiceData.commitmentAmount" class="commitment-separator"> |
+              </span>
+              <span v-if="invoiceData.commitmentAmount">Amount: {{ formatMoney(invoiceData.commitmentAmount) }}</span>
+            </div>
           </div>
         </div>
       </div>
@@ -61,7 +72,9 @@ const showPrice = ref(false)
 const invoiceData = ref({
   shopName: '',
   date: '',
-  rows: []
+  rows: [],
+  commitmentDate: '',
+  commitmentAmount: 0
 })
 
 onMounted(async () => {
@@ -74,7 +87,9 @@ onMounted(async () => {
         invoiceData.value = {
           shopName: invoice.shopName || '',
           date: invoice.date || '',
-          rows: invoice.rows || []
+          rows: invoice.rows || [],
+          commitmentDate: invoice.commitmentDate || '',
+          commitmentAmount: invoice.commitmentAmount || 0
         }
       }
     } catch (error) {
@@ -111,6 +126,12 @@ function formatMoney(n) {
     minimumFractionDigits: 2,
     maximumFractionDigits: 2
   })
+}
+
+function formatDate(dateStr) {
+  if (!dateStr) return ''
+  const date = new Date(dateStr)
+  return date.toLocaleDateString('en-GB', { day: '2-digit', month: '2-digit', year: 'numeric' })
 }
 
 async function downloadImage() {
@@ -307,6 +328,35 @@ async function downloadImage() {
   font-weight: bold;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
+}
+
+/* Customer Commitment Styles */
+.commitment-section {
+  margin-top: 25px;
+  padding-top: 20px;
+  border-top: 1px solid #e0e0e0;
+}
+
+.commitment-title {
+  font-weight: bold;
+  font-size: 1.1rem;
+  margin-bottom: 8px;
+  color: #1976d2;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+.commitment-details {
+  font-size: 1rem;
+  color: #333;
+  line-height: 1.6;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+.commitment-separator {
+  margin: 0 10px;
+  color: #666;
 }
 
 /* Mobile Responsive */
