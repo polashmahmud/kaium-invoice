@@ -47,7 +47,11 @@
         <tfoot>
           <tr class="total-row-table">
             <td colspan="5" class="text-right total-label-cell">
-              <strong>Gross Total:</strong>
+              <div class="total-label-wrapper">
+                <q-btn flat dense icon="edit_note" size="sm" color="primary" @click="openCommitmentDialog"
+                  class="no-print commitment-btn" title="Customer Commitment" />
+                <strong>Gross Total:</strong>
+              </div>
             </td>
             <td class="text-right total-amount-cell">
               <strong>{{ formatMoney(grossTotal) }}</strong>
@@ -113,8 +117,16 @@
 
         <!-- Mobile Total -->
         <div class="mobile-total q-pa-md">
-          <div class="text-h6 text-right">
-            <strong>Gross Total: {{ formatMoney(grossTotal) }}</strong>
+          <div class="row items-center justify-between">
+            <div class="col-auto">
+              <q-btn flat dense icon="edit_note" size="md" color="primary" @click="openCommitmentDialog"
+                class="no-print" label="Commitment" />
+            </div>
+            <div class="col text-right">
+              <div class="text-h6">
+                <strong>Gross Total: {{ formatMoney(grossTotal) }}</strong>
+              </div>
+            </div>
           </div>
         </div>
       </div>
@@ -132,7 +144,7 @@
           <div class="print-item-right">
             <span class="print-calculation">{{ row.qty }} {{ row.unit || 'Pcs' }} × {{ formatMoney(row.price) }} = {{
               formatMoney(rowTotal(row))
-            }}</span>
+              }}</span>
           </div>
         </div>
 
@@ -153,6 +165,26 @@
         <q-btn icon="refresh" @click="$emit('reset-invoice')" />
       </q-btn-group>
     </div>
+
+    <!-- Customer Commitment Dialog -->
+    <q-dialog v-model="showCommitmentDialog">
+      <q-card style="min-width: 350px">
+        <q-card-section>
+          <div class="text-h6">Customer Commitment</div>
+        </q-card-section>
+
+        <q-card-section class="q-pt-none">
+          <q-input v-model="tempCommitmentDate" label="Date" type="date" outlined dense class="q-mb-md" />
+          <q-input v-model.number="tempCommitmentAmount" label="Amount" type="number" min="0" step="0.01" outlined dense
+            prefix="৳" />
+        </q-card-section>
+
+        <q-card-actions align="right">
+          <q-btn flat label="Cancel" color="negative" v-close-popup />
+          <q-btn flat label="Save" color="primary" @click="saveCommitment" />
+        </q-card-actions>
+      </q-card>
+    </q-dialog>
   </div>
 </template>
 
@@ -163,10 +195,18 @@ const props = defineProps({
   rows: {
     type: Array,
     required: true
+  },
+  commitmentDate: {
+    type: String,
+    default: ''
+  },
+  commitmentAmount: {
+    type: Number,
+    default: 0
   }
 })
 
-const emit = defineEmits(['add-row', 'remove-row', 'print-invoice', 'download-image', 'reset-invoice'])
+const emit = defineEmits(['add-row', 'remove-row', 'print-invoice', 'download-image', 'reset-invoice', 'update:commitmentDate', 'update:commitmentAmount'])
 
 // Unit options
 const unitOptions = [
@@ -185,6 +225,9 @@ const unitOptions = [
 ]
 
 const mobileListContainer = ref(null)
+const showCommitmentDialog = ref(false)
+const tempCommitmentDate = ref('')
+const tempCommitmentAmount = ref(0)
 
 // Handle Enter key on price field
 function handlePriceEnter(index, event) {
@@ -255,6 +298,18 @@ function formatMoney(n) {
     minimumFractionDigits: 2,
     maximumFractionDigits: 2
   })
+}
+
+function openCommitmentDialog() {
+  tempCommitmentDate.value = props.commitmentDate || ''
+  tempCommitmentAmount.value = props.commitmentAmount || 0
+  showCommitmentDialog.value = true
+}
+
+function saveCommitment() {
+  emit('update:commitmentDate', tempCommitmentDate.value)
+  emit('update:commitmentAmount', tempCommitmentAmount.value)
+  showCommitmentDialog.value = false
 }
 </script>
 
@@ -346,6 +401,17 @@ function formatMoney(n) {
 
 .total-label-cell {
   font-weight: 600;
+}
+
+.total-label-wrapper {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 8px;
+}
+
+.commitment-btn {
+  margin-right: 4px;
 }
 
 .total-amount-cell {

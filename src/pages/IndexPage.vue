@@ -5,8 +5,9 @@
         <q-card-section id="printArea" class="print-area">
           <InvoiceHeader v-model:shop-name="shopName" v-model:date="date" />
 
-          <InvoiceTable :rows="rows" @add-row="addRow" @remove-row="removeRow" @print-invoice="printInvoice"
-            @download-image="downloadImage" @reset-invoice="resetInvoice" />
+          <InvoiceTable :rows="rows" v-model:commitmentDate="commitmentDate" v-model:commitmentAmount="commitmentAmount"
+            @add-row="addRow" @remove-row="removeRow" @print-invoice="printInvoice" @download-image="downloadImage"
+            @reset-invoice="resetInvoice" />
         </q-card-section>
       </q-card>
     </div>
@@ -31,6 +32,8 @@ const router = useRouter()
 
 const shopName = ref('')
 const date = ref(new Date().toISOString().slice(0, 10))
+const commitmentDate = ref('')
+const commitmentAmount = ref(0)
 const currentInvoiceId = ref(null)
 const isLoading = ref(true)
 
@@ -70,7 +73,7 @@ onMounted(async () => {
 })
 
 // Watch for changes and auto-save
-watch([shopName, date, rows], async () => {
+watch([shopName, date, rows, commitmentDate, commitmentAmount], async () => {
   if (!isLoading.value && currentInvoiceId.value) {
     await saveCurrentInvoice()
   }
@@ -81,6 +84,8 @@ function loadInvoiceData(invoice) {
   shopName.value = invoice.shopName || ''
   date.value = invoice.date || new Date().toISOString().slice(0, 10)
   rows.value = invoice.rows || [{ id: 1, description: '', qty: 0, price: 0 }]
+  commitmentDate.value = invoice.commitmentDate || ''
+  commitmentAmount.value = invoice.commitmentAmount || 0
 
   // Update counter to highest ID
   if (rows.value.length > 0) {
@@ -93,7 +98,9 @@ async function createNewInvoice() {
   const invoiceData = {
     shopName: '',
     date: new Date().toISOString().slice(0, 10),
-    rows: [{ id: 1, description: '', qty: 0, price: 0 }]
+    rows: [{ id: 1, description: '', qty: 0, price: 0 }],
+    commitmentDate: '',
+    commitmentAmount: 0
   }
 
   const id = await createInvoice(invoiceData)
@@ -103,6 +110,8 @@ async function createNewInvoice() {
   shopName.value = ''
   date.value = invoiceData.date
   rows.value = [...invoiceData.rows]
+  commitmentDate.value = ''
+  commitmentAmount.value = 0
   counter = 1
 }
 
@@ -114,7 +123,9 @@ async function saveCurrentInvoice() {
     const invoiceData = {
       shopName: shopName.value,
       date: date.value,
-      rows: rows.value
+      rows: rows.value,
+      commitmentDate: commitmentDate.value,
+      commitmentAmount: commitmentAmount.value
     }
 
     await updateInvoice(currentInvoiceId.value, invoiceData)
@@ -151,7 +162,9 @@ function downloadImage() {
   const invoiceData = {
     shopName: shopName.value,
     date: date.value,
-    rows: rows.value
+    rows: rows.value,
+    commitmentDate: commitmentDate.value,
+    commitmentAmount: commitmentAmount.value
   }
   sessionStorage.setItem('invoicePreviewData', JSON.stringify(invoiceData))
 
