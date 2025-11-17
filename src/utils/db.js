@@ -1,9 +1,11 @@
 // IndexedDB helper for Invoice Management
 
 const DB_NAME = 'InvoiceDB'
-const DB_VERSION = 1
+const DB_VERSION = 2
 const STORE_NAME = 'invoices'
+const SETTINGS_STORE_NAME = 'settings'
 const CURRENT_INVOICE_KEY = 'currentInvoiceId'
+const ACTIVATION_KEY = 'activation'
 
 let db = null
 
@@ -36,6 +38,11 @@ export function initDB() {
         // Create indexes
         objectStore.createIndex('createdAt', 'createdAt', { unique: false })
         objectStore.createIndex('updatedAt', 'updatedAt', { unique: false })
+      }
+
+      // Create settings store for activation status
+      if (!db.objectStoreNames.contains(SETTINGS_STORE_NAME)) {
+        db.createObjectStore(SETTINGS_STORE_NAME, { keyPath: 'key' })
       }
     }
   })
@@ -165,4 +172,108 @@ export function setCurrentInvoiceId(id) {
 // Clear current invoice ID
 export function clearCurrentInvoiceId() {
   localStorage.removeItem(CURRENT_INVOICE_KEY)
+}
+
+// Activation Management Functions
+const CORRECT_KEY = 'Polash123.@$'
+
+// Get activation status
+export async function getActivationStatus() {
+  if (!db) await initDB()
+
+  return new Promise((resolve, reject) => {
+    const transaction = db.transaction([SETTINGS_STORE_NAME], 'readonly')
+    const store = transaction.objectStore(SETTINGS_STORE_NAME)
+    const request = store.get(ACTIVATION_KEY)
+
+    request.onsuccess = () => {
+      const result = request.result
+      if (result) {
+        resolve({
+          isActivated: result.isActivated || false,
+          attempts: result.attempts || 0,
+          isPermanentlyLocked: result.isPermanentlyLocked || false,
+        })
+      } else {
+        // First time - not activated
+        resolve({
+          isActivated: false,
+          attempts: 0,
+          isPermanentlyLocked: false,
+        })
+      }
+    }
+    request.onerror = () => reject(request.error)
+  })
+}
+
+// Verify activation key
+export async function verifyActivationKey(inputKey) {
+  if (!db) await initDB()
+
+  const currentStatus = await getActivationStatus()
+
+  // Check if permanently locked
+  if (currentStatus.isPermanentlyLocked) {
+    return {
+      success: false,
+      isPermanentlyLocked: true,
+      message: 'Your app is permanently locked',
+    }
+  }
+
+  // Verify the key
+  if (inputKey === CORRECT_KEY) {
+    // Correct key - activate the app
+    await saveActivationStatus({
+      isActivated: true,
+      attempts: 0,
+      isPermanentlyLocked: false,
+    })
+    return {
+      success: true,
+      isActivated: true,
+      message: 'App activated successfully',
+    }
+  } else {
+    // Wrong key - increment attempts
+    const newAttempts = currentStatus.attempts + 1
+    const isPermanentlyLocked = newAttempts >= 3
+
+    await saveActivationStatus({
+      isActivated: false,
+      attempts: newAttempts,
+      isPermanentlyLocked: isPermanentlyLocked,
+    })
+
+    return {
+      success: false,
+      attempts: newAttempts,
+      isPermanentlyLocked: isPermanentlyLocked,
+      message: isPermanentlyLocked
+        ? 'Your app is permanently locked'
+        : `Wrong activation key. ${3 - newAttempts} attempts remaining`,
+    }
+  }
+}
+
+// Save activation status
+async function saveActivationStatus(status) {
+  if (!db) await initDB()
+
+  return new Promise((resolve, reject) => {
+    const transaction = db.transaction([SETTINGS_STORE_NAME], 'readwrite')
+    const store = transaction.objectStore(SETTINGS_STORE_NAME)
+
+    const data = {
+      key: ACTIVATION_KEY,
+      ...status,
+      updatedAt: new Date().toISOString(),
+    }
+
+    const request = store.put(data)
+
+    request.onsuccess = () => resolve(data)
+    request.onerror = () => reject(request.error)
+  })
 }

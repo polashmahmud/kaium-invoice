@@ -11,6 +11,41 @@
         </q-card-section>
       </q-card>
     </div>
+
+    <!-- Activation Modal -->
+    <q-dialog v-model="showActivationModal" persistent>
+      <q-card style="min-width: 400px">
+        <q-card-section class="bg-primary text-white">
+          <div class="text-h6">Activate Your App</div>
+        </q-card-section>
+
+        <q-card-section v-if="!activationStatus.isPermanentlyLocked">
+          <div class="q-mb-md text-body1">
+            Please enter your activation key to use the app.
+          </div>
+          <q-input v-model="activationKeyInput" label="Activation Key" type="password" outlined dense
+            :error="!!activationError" :error-message="activationError" @keyup.enter="submitActivationKey" />
+          <div v-if="activationStatus.attempts > 0 && activationStatus.attempts < 3"
+            class="q-mt-sm text-caption text-orange">
+            {{ 3 - activationStatus.attempts }} attempt(s) remaining
+          </div>
+        </q-card-section>
+
+        <q-card-section v-else class="text-center">
+          <q-icon name="lock" size="64px" color="negative" class="q-mb-md" />
+          <div class="text-h6 text-negative q-mb-md">
+            Your app is permanently locked
+          </div>
+          <div class="text-body2 text-grey-7">
+            You have exceeded the maximum number of activation attempts.
+          </div>
+        </q-card-section>
+
+        <q-card-actions align="right" v-if="!activationStatus.isPermanentlyLocked">
+          <q-btn flat label="Submit" color="primary" @click="submitActivationKey" :disable="!activationKeyInput" />
+        </q-card-actions>
+      </q-card>
+    </q-dialog>
   </q-page>
 </template>
 
@@ -25,7 +60,9 @@ import {
   getInvoice,
   updateInvoice,
   getCurrentInvoiceId,
-  setCurrentInvoiceId
+  setCurrentInvoiceId,
+  getActivationStatus,
+  verifyActivationKey
 } from 'src/utils/db.js'
 
 const router = useRouter()
@@ -37,6 +74,16 @@ const commitmentAmount = ref(0)
 const currentInvoiceId = ref(null)
 const isLoading = ref(true)
 
+// Activation state
+const showActivationModal = ref(false)
+const activationKeyInput = ref('')
+const activationError = ref('')
+const activationStatus = ref({
+  isActivated: false,
+  attempts: 0,
+  isPermanentlyLocked: false
+})
+
 let counter = 1
 const rows = ref([
   { id: 1, description: '', qty: 0, price: 0 },
@@ -47,6 +94,18 @@ onMounted(async () => {
   try {
     await initDB()
 
+    // Check activation status first
+    const status = await getActivationStatus()
+    activationStatus.value = status
+
+    if (!status.isActivated) {
+      // Show activation modal
+      showActivationModal.value = true
+      isLoading.value = false
+      return
+    }
+
+    // If activated, proceed with loading invoice
     // Check if there's a current invoice ID
     const savedId = getCurrentInvoiceId()
 
@@ -170,6 +229,68 @@ function downloadImage() {
 
   // Navigate to preview page
   router.push('/preview')
+}
+
+// Activation functions
+async function submitActivationKey() {
+  if (!activationKeyInput.value) {
+    activationError.value = 'Please enter activation key'
+    return
+  }
+
+  try {
+    const result = await verifyActivationKey(activationKeyInput.value)
+
+    if (result.success) {
+      // Activation successful
+      activationStatus.value.isActivated = true
+      showActivationModal.value = false
+      activationError.value = ''
+
+      // Load invoice data
+      await loadInvoiceOnActivation()
+    } else {
+      // Activation failed
+      activationStatus.value = {
+        isActivated: false,
+        attempts: result.attempts || 0,
+        isPermanentlyLocked: result.isPermanentlyLocked || false
+      }
+
+      if (result.isPermanentlyLocked) {
+        activationKeyInput.value = ''
+        activationError.value = ''
+      } else {
+        activationError.value = result.message
+        activationKeyInput.value = ''
+      }
+    }
+  } catch (error) {
+    console.error('Activation error:', error)
+    activationError.value = 'An error occurred. Please try again.'
+  }
+}
+
+async function loadInvoiceOnActivation() {
+  try {
+    const savedId = getCurrentInvoiceId()
+
+    if (savedId) {
+      const invoice = await getInvoice(savedId)
+      if (invoice) {
+        loadInvoiceData(invoice)
+        currentInvoiceId.value = savedId
+      } else {
+        await createNewInvoice()
+      }
+    } else {
+      await createNewInvoice()
+    }
+  } catch (error) {
+    console.error('Error loading invoice:', error)
+  } finally {
+    isLoading.value = false
+  }
 }
 </script>
 
